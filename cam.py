@@ -20,13 +20,14 @@ import time
 
 import BaseHTTPServer
 import SocketServer
-import Image
+from PIL import Image
 import StringIO
-import ImageEnhance
-import ImageFilter
-import ImageFont
-import ImageDraw
+from PIL import ImageEnhance
+from PIL import ImageFilter
+from PIL import ImageFont
+from PIL import ImageDraw
 import random
+import numpy
 
 class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, server_address):
@@ -39,69 +40,80 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   """
   def do_GET(self): 
     if self.path[:2] == "/":     
-              #mjpeg boundary. LOL
-              boundary = "TROLLOLOLOLOL" 
+              # mjpeg boundary. LOL
+              #boundary = "MPDLHTS" 
+              boundary = "myboundary" # From Axis M1011-W IP camera
               self.send_response(200)
               self.send_header("Access-Control-Allow-Origin", "*")
               self.send_header("Content-type",
                                "multipart/x-mixed-replace;boundary=%s"
                                % boundary)
               self.end_headers()        
-              #create a string buffer for the final jpeg encoded image
+              # Create a string buffer for the final jpeg encoded image
               sbuf = StringIO.StringIO()
-              #load the background image
+              # Load the background image
               pilimg = Image.open("cam.jpg")
-	      #get a brightness adjusting thingy
+              # Cache the dimensions of the image
+              width, height = pilimg.size
+              # Get a brightness adjusting thingy
               bright = ImageEnhance.Brightness(pilimg) 
               sbuf.seek(0)
               factor = 0
               while True:
-                #hour and minute for the current time.
+                # Hour and minute for the current time.
                 toh = time.gmtime().tm_hour
                 tom = time.gmtime().tm_min
-                #set the brightness factor for sunrise, day, sunset and night
+                # Set the brightness factor for sunrise, day, sunset and night
                 if 7 <= toh < 8 :
-                  #sunrise
+                  # sunrise
                   factor = 0.2 + (tom) * (0.4/60) 
                 elif 16 <= toh < 17:
-                  #sunset
+                  # sunset
                   factor = 0.2 + (60 - tom) * (0.4/60) 
                 elif 8 <= toh <=16:
                   factor = 0.6
                 else:
                   factor = 0.2
-                #vary the brightness a little to give the jpeg encoder something to chew on
+                # Vary the brightness a little to give the jpeg encoder something to chew on
                 factor += (random.random() / 10.0)
-                #blur the image to simulate ebay-camera-lense
+                # Blur the image to simulate ebay-camera-lense
                 pil = pilimg.filter(ImageFilter.BLUR)
-                #now apply The Darkening
+                # Now apply The Darkening
                 pil = bright.enhance(factor)
 
-                #lets caption this so people think its a Motion stream
+                # Lets caption this so people think its a Motion stream
                 t = time.strftime("%H:%M:%S-00", time.gmtime())
                 t2 = time.strftime("%d-%m-%Y", time.gmtime())
                 draw = ImageDraw.Draw(pil)
-		#font has been processed from silkscr.ttf to a pil and pbm file in this folder
+                # Font has been processed from silkscr.ttf to a pil and pbm file in this folder
                 fn = ImageFont.load('slkscr.pil')
-                draw.text((2,470), "IP Camera", font=fn)
-                draw.text((580,455), t2, font=fn)
-                draw.text((580,465), t, font=fn)
+                # The AXIS IP cameras usually draw a black line across the top
+                # of the image, and put the text along that.
+                # I'm making some assumptions about the minimum image size
+                # here. To be robust they should really be corrected, but this
+                # should work for any image of a reasonable size for a webcam.
+                draw.line([(0,0),(width,0)], fill=000, width=40)
+                draw.text((2,7), "AXIS Communications AB", font=fn)
+                draw.text(((width-120),7), t2, font=fn)
+                draw.text(((width-60),7), t, font=fn)
                 del draw
 
-                #save the processed image to the string buffer, making sure to set the quality low to give it that "just streamed over dialup" feel
+                # Save the processed image to the string buffer, making sure
+                # to set the quality low to give it that "just streamed over
+                # dialup" feel.
                 sbuf.seek(0)
                 pil.save(sbuf, format='jpeg', quality=20)
 
-                #send the data to the client
+                # Send the data to the client
                 response = "Content-type: image/jpeg\n\n"
                 response = response + sbuf.getvalue()
                 response = response + "\n--%s\n" % boundary
                 self.wfile.write(response)    
-                #sleep for a second, otherwise Chrome whinges that the site is in a redirect loop
-                time.sleep(1)
+                # Sleep for 5 secs, otherwise Chrome whinges that the site is in a redirect loop
+                time.sleep(5)
                 
     else:
-      self.send_error(404, "This is not the page youre looking for.")
+      self.send_error(404, "This is not the page you're looking for.")
       self.end_headers()
     
   do_HEAD = do_POST = do_GET
@@ -117,7 +129,7 @@ if __name__ == '__main__':
   signal.signal(signal.SIGINT, quit)
   signal.signal(signal.SIGTERM, quit)
   
-  http_server = HTTPServer(server_address=("",9000)) 
+  http_server = HTTPServer(server_address=("",8080)) 
   
   http_server_thread = threading.Thread(target = http_server.serve_forever())
   http_server_thread.setDaemon(true)
