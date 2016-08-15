@@ -1,7 +1,5 @@
 """
-Webcam Streamer
-
-Uses Pygame and HTTPServer to stream USB Camera images via HTTP (Webcam)
+Fake Webcam Streamer
 
 HTTP Port, camera resolutions and framerate are hardcoded to keep it
 simple but the program can be updated to take options.
@@ -9,8 +7,13 @@ simple but the program can be updated to take options.
 Default HTTP Port 8080, 320x240 resolution and 6 frames per second.
 Point your browser at http://localhost:8080/
 
-Original author's site:
-http://www.madox.net/
+Note if you want people to think it's a real camera, you might need to set
+things up so that the URL it is found at looks like:
+http://<ip-address>/axis-cgi/mjpg/video.cgi
+
+At least for the Axis IP camera.
+
+This is based on the original Trollcam by Tom (fridgehead).
 """
 
 import signal
@@ -40,7 +43,12 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   HTTP Request Handler
   """
   def do_GET(self): 
-    if self.path[:2] == "/":     
+    if self.path[:2] == "/":
+              # This needs to be checked against the actual IP cam as I'm sure
+              # this is wrong.  Very few people are likely to check this
+              # closely.
+              self.server_version = "nginx/1.11.1"
+              self.sys_version = ""
               # mjpeg boundary. LOL
               #boundary = "MPDLHTS" 
               boundary = "myboundary" # From Axis M1011-W IP camera
@@ -131,7 +139,7 @@ if __name__ == '__main__':
   signal.signal(signal.SIGTERM, quit)
   
   http_server = HTTPServer(server_address=("",8080)) 
-  
+
   http_server_thread = threading.Thread(target = http_server.serve_forever())
   http_server_thread.setDaemon(true)
   http_server_thread.start()
