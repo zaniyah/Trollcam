@@ -11,7 +11,7 @@ Note if you want people to think it's a real camera, you might need to set
 things up so that the URL it is found at looks like:
 http://<ip-address>/axis-cgi/mjpg/video.cgi
 
-At least for the Axis IP camera.
+At least for the Axis IP camera I've used as inspiration.
 
 This is based on the original Trollcam by Tom (fridgehead).
 """
@@ -37,6 +37,9 @@ class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, server_address):
     SocketServer.TCPServer.__init__(self, server_address, HTTPHandler)
 
+# TODO The Axis IP camera this is based on takes resolution as a request
+# parameter, eg  http://<ip-address>/axis-cgi/mjpg/video.cgi?resolution=320x240
+# so it would be nice to do the same
    
 class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   """
@@ -44,14 +47,12 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   """
   def do_GET(self): 
     if self.path[:2] == "/":
-              # This needs to be checked against the actual IP cam as I'm sure
-              # this is wrong.  Very few people are likely to check this
-              # closely.
-              self.server_version = "nginx/1.11.1"
+              # The actual IP camera doesn't set these, so don't let the
+              # defaults give us away
+              self.server_version = ""
               self.sys_version = ""
-              # mjpeg boundary. LOL
-              #boundary = "MPDLHTS" 
-              boundary = "myboundary" # From Axis M1011-W IP camera
+              # mjpeg boundary
+              boundary = "--myboundary"
               self.send_response(200)
               self.send_header("Access-Control-Allow-Origin", "*")
               self.send_header("Content-type",
@@ -96,7 +97,7 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 draw = ImageDraw.Draw(pil)
                 # Font has been processed from silkscr.ttf to a pil and pbm file in this folder
                 fn = ImageFont.load('slkscr.pil')
-                # The AXIS IP cameras usually draw a black line across the top
+                # Some AXIS IP cameras draw a black line across the top
                 # of the image, and put the text along that.
                 # I'm making some assumptions about the minimum image size
                 # here. To be robust they should really be corrected, but this
