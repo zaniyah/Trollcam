@@ -9,6 +9,7 @@ simple but the program can be updated to take options.
 Default HTTP Port 8080, 320x240 resolution and 6 frames per second.
 Point your browser at http://localhost:8080/
 
+Original author's site:
 http://www.madox.net/
 """
 
