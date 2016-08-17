@@ -2,16 +2,11 @@
 Fake Webcam Streamer
 
 HTTP Port, camera resolutions and framerate are hardcoded to keep it
-simple but the program can be updated to take options.
+simple but the program can be updated to take options, and probably
+will be at a later date.
 
 Default HTTP Port 8080, 320x240 resolution and 6 frames per second.
-Point your browser at http://localhost:8080/
-
-Note if you want people to think it's a real camera, you might need to set
-things up so that the URL it is found at looks like:
-http://<ip-address>/axis-cgi/mjpg/video.cgi
-
-At least for the Axis IP camera I've used as inspiration.
+Point your browser at http://localhost:8080/axis-cgi/mjpg/video.cgi
 
 This is based on the original Trollcam by Tom (fridgehead).
 """
@@ -46,13 +41,19 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   HTTP Request Handler
   """
   def do_GET(self): 
-    if self.path[:2] == "/":
+    self.error_message_format = """
+<HEAD><TITLE>403 Forbidden</TITLE></HEAD>
+<BODY><H1>403 Forbidden</H1>
+%(message)s.
+</BODY>
+      """
+    if self.path == "/axis-cgi/mjpg/video.cgi":
               # The actual IP camera doesn't set these, so don't let the
               # defaults give us away
               self.server_version = ""
               self.sys_version = ""
               # mjpeg boundary
-              boundary = "--myboundary"
+              boundary = "myboundary"
               self.send_response(200)
               self.send_header("Access-Control-Allow-Origin", "*")
               self.send_header("Content-type",
@@ -123,7 +124,10 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 time.sleep(5)
                 
     else:
-      self.send_error(404, "This is not the page you're looking for.")
+      # TODO / should redirect to /view/viewer_index.shtml?id=1234, which is a
+      # bit more complicated
+      message = "Your client does not have permission to get URL %s from this server" % self.path
+      self.send_error(403, message)
       self.end_headers()
     
   do_HEAD = do_POST = do_GET
