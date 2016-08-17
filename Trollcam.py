@@ -32,7 +32,7 @@ class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, server_address):
     SocketServer.TCPServer.__init__(self, server_address, HTTPHandler)
 
-# TODO The Axis IP camera this is based on takes resolution as a request
+# TODO The AXIS IP camera this is based on takes resolution as a request
 # parameter, eg  http://<ip-address>/axis-cgi/mjpg/video.cgi?resolution=320x240
 # so it would be nice to do the same
    
