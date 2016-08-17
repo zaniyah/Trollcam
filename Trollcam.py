@@ -47,7 +47,7 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 %(message)s.
 </BODY>
       """
-    if self.path == "/axis-cgi/mjpg/video.cgi":
+    if (self.path == "/axis-cgi/mjpg/video.cgi") or (self.path == "/mjpg/video.mjpg"):
               # The actual IP camera doesn't set these, so don't let the
               # defaults give us away
               self.server_version = ""
