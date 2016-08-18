@@ -1,10 +1,12 @@
-Trollcam.py
+# Trollcam.py
 
-A fake MJPEG camera stream. Loads the "cam.jpg" file and attempts to make it "webcammy".
+A fake MJPEG camera stream. Loads the "cam.jpg" file and attempts to make it
+"webcammy".
 
-Serves this on its own http server on port 8080.
+Serves this on its own http server on port 8080, though you can get it to use
+a different port by passing --port.  Remember that on Linux you won't be able
+to use ports <1024 without some extra work.
+
 Implements a basic day/night cycle and fake auto-gain spazzes
-
-
 
 TROLLOLOLOLOLOL!!
