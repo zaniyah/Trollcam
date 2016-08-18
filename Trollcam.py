@@ -10,7 +10,6 @@ Point your browser at http://localhost:8080/axis-cgi/mjpg/video.cgi
 
 This is based on the original Trollcam by Tom (fridgehead).
 """
-
 import signal
 import sys
 import tempfile
@@ -27,6 +26,8 @@ from PIL import ImageFont
 from PIL import ImageDraw
 import random
 import numpy
+
+import argparse
 
 class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, server_address):
@@ -132,18 +133,25 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
   do_HEAD = do_POST = do_GET
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--port", type=int, help="")
+
 if __name__ == '__main__':
   print "Started webcam streamer"
 
   def quit(signum, frame):
     print "Quitting..."
     sys.exit(0)
-
   
+  port = 8080
+  args = parser.parse_args()
+  if (args.port >= 1) and (args.port <= 65535):
+    port = args.port
+
   signal.signal(signal.SIGINT, quit)
   signal.signal(signal.SIGTERM, quit)
   
-  http_server = HTTPServer(server_address=("",8080)) 
+  http_server = HTTPServer(server_address=("",port)) 
 
   http_server_thread = threading.Thread(target = http_server.serve_forever())
   http_server_thread.setDaemon(true)
