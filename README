@@ -6,7 +6,7 @@ A fake MJPEG camera stream. Loads the "cam.jpg" file and attempts to make it
 Serves this on its own HTTP server on port 8080, though you can get it to use
 a different port by passing --port X.
 
-./Trollcam.py --port 9000
+./trollcam.py --port 9000
 
 Remember that on Linux you won't be able to use ports <1024 without some extra
 work.
