@@ -11,6 +11,8 @@ Point your browser at http://localhost:8080/axis-cgi/mjpg/video.cgi
 
 This is based on the original Trollcam by Tom (fridgehead).
 """
+__version__ = "2.0"
+
 import signal
 import sys
 import tempfile
@@ -134,32 +136,37 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
   do_HEAD = do_POST = do_GET
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--port", type=int, help="")
 
-if __name__ == '__main__':
-  print "Started webcam streamer"
-
-  def quit(signum, frame):
+def quit(signum, frame):
     print "Quitting..."
     sys.exit(0)
-  
-  port = 8080
-  args = parser.parse_args()
-  if (args.port >= 1) and (args.port <= 65535):
-    port = args.port
 
-  signal.signal(signal.SIGINT, quit)
-  signal.signal(signal.SIGTERM, quit)
-  
-  http_server = HTTPServer(server_address=("",port)) 
+def main():
+    port = 8080
 
-  http_server_thread = threading.Thread(target = http_server.serve_forever())
-  http_server_thread.setDaemon(true)
-  http_server_thread.start()
-  
-  try:
-    while True:
-      http_server_thread.join(60)
-  except KeyboardInterrupt:
-    quit()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--port", type=int, help="")
+    args = parser.parse_args()
+
+    print "Starting webcam streamer"
+
+    if (args.port >= 1) and (args.port <= 65535):
+        port = args.port
+
+    signal.signal(signal.SIGINT, quit)
+    signal.signal(signal.SIGTERM, quit)
+
+    http_server = HTTPServer(server_address=("",port))
+
+    http_server_thread = threading.Thread(target = http_server.serve_forever())
+    http_server_thread.setDaemon(true)
+    http_server_thread.start()
+
+    try:
+       while True:
+         http_server_thread.join(60)
+    except KeyboardInterrupt:
+       quit()
+
+if __name__ == '__main__':
+    sys.exit(main())
