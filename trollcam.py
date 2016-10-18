@@ -18,6 +18,7 @@ import sys
 import tempfile
 import threading
 import time
+import re
 
 import BaseHTTPServer
 import SocketServer
@@ -36,9 +37,6 @@ class HTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, server_address):
     SocketServer.TCPServer.__init__(self, server_address, HTTPHandler)
 
-# TODO The AXIS IP camera this is based on takes resolution as a request
-# parameter, eg  http://<ip-address>/axis-cgi/mjpg/video.cgi?resolution=320x240
-# so it would be nice to do the same
    
 class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   """
@@ -51,7 +49,14 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 %(message)s.
 </BODY>
       """
-    if (self.path == "/axis-cgi/mjpg/video.cgi") or (self.path == "/mjpg/video.mjpg"):
+    # TODO The AXIS IP camera this is based on takes resolution as a request
+    # parameter, eg  http://<ip-address>/axis-cgi/mjpg/video.cgi?resolution=320x240
+    # so it would be nice to do the same
+    url_pat = "(:?^/axis-cgi/mjpg/video.cgi|^/mjpg/video.mjpg)"
+    path_pat = "(?:^\?resolution=[0-9]{3,4}x[0-9]{3,4})"
+    prog = re.compile(url_pat);
+    match = prog.search(self.path)
+    if match:
               # The actual IP camera doesn't set these, so don't let the
               # defaults give us away
               self.server_version = ""
