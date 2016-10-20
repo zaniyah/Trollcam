@@ -8,8 +8,6 @@ spazzes.
 Serves this on its own HTTP server on port 8080, though you can get it to use
 a different port by passing --port X.
 
-.. sourcecode:: console
-    
    $ ./cam.py --port 9000
 
 Remember that on Linux you won't be able to use ports <1024 without some extra
