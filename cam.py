@@ -49,6 +49,7 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 %(message)s.
 </BODY>
       """
+    # TODO We need to ignore multiple / characters occurring.
     # TODO The AXIS IP camera this is based on takes resolution as a request
     # parameter, eg  http://<ip-address>/axis-cgi/mjpg/video.cgi?resolution=320x240
     # so it would be nice to do the same
